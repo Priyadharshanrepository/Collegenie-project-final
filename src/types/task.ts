@@ -8,6 +8,7 @@ export interface Task {
   priority: 'high' | 'medium' | 'low';
   category: string;
   course?: string;
+  subject?: 'Allied Mathematics' | 'Machine Learning' | 'Cloud Computing' | 'Web Development' | 'Database Systems' | 'Software Engineering' | string;
 }
 
 export interface GroupedTasks {
@@ -29,4 +30,12 @@ export interface User {
   name: string;
   email: string;
   profileImage?: string;
+}
+
+export interface GrokResponse {
+  choices: {
+    message: {
+      content: string;
+    };
+  }[];
 }

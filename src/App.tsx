@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Chat from "./pages/Chat";
+import EnhancedChat from "./pages/EnhancedChat";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
@@ -42,6 +43,11 @@ const App = () => (
             <Route path="/chat" element={
               <ProtectedRoute>
                 <Chat />
+              </ProtectedRoute>
+            } />
+            <Route path="/enhanced-chat" element={
+              <ProtectedRoute>
+                <EnhancedChat />
               </ProtectedRoute>
             } />
             
