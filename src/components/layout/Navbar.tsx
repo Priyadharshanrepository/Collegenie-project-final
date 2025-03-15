@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Book, BarChart3, ListTodo, MessageCircle, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Book, BarChart3, ListTodo, MessageCircle, Menu, X, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ButtonCustom from '../ui/button-custom';
+import { useAuth } from '@/hooks/useAuth';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
   
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
@@ -29,6 +33,11 @@ const Navbar = () => {
     // Close mobile menu when route changes
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
   
   return (
     <header className={cn(
@@ -39,11 +48,12 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="relative w-8 h-8">
-              <div className="absolute inset-0 bg-collegenie-blue rounded-lg rotate-45 transition-all duration-300 hover:rotate-0"></div>
-              <Book className="absolute inset-0 text-white w-5 h-5 m-1.5" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-collegenie-blue to-collegenie-blue-dark bg-clip-text text-transparent">Collegenie</span>
+            <img 
+              src="/lovable-uploads/dad37d42-72df-4ff0-bd5a-f6d391213a7e.png" 
+              alt="Collegenie Logo" 
+              className="h-8 w-8"
+            />
+            <span className="text-xl font-bold bg-gradient-to-r from-collegenie-gold to-collegenie-gold-dark bg-clip-text text-transparent">Collegenie</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -69,9 +79,45 @@ const Navbar = () => {
               );
             })}
             
-            <ButtonCustom variant="blue" size="sm" className="ml-2">
-              Sign In
-            </ButtonCustom>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-collegenie-gray-dark hover:bg-collegenie-gray-light">
+                    <div className="w-8 h-8 rounded-full bg-collegenie-blue-light flex items-center justify-center">
+                      <User className="w-4 h-4 text-collegenie-blue-dark" />
+                    </div>
+                    <span className="hidden sm:inline">{user.name}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <ButtonCustom 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/sign-in')}
+                >
+                  Sign In
+                </ButtonCustom>
+                <ButtonCustom 
+                  variant="blue" 
+                  size="sm" 
+                  onClick={() => navigate('/sign-up')}
+                >
+                  Sign Up
+                </ButtonCustom>
+              </div>
+            )}
           </nav>
           
           {/* Mobile Menu Button */}
@@ -112,11 +158,40 @@ const Navbar = () => {
             );
           })}
           
-          <div className="pt-2 pb-3">
-            <ButtonCustom variant="blue" className="w-full">
-              Sign In
-            </ButtonCustom>
-          </div>
+          {user ? (
+            <>
+              <div className="px-3 py-2 flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-collegenie-blue-light flex items-center justify-center">
+                  <User className="w-4 h-4 text-collegenie-blue-dark" />
+                </div>
+                <span>{user.name}</span>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="w-full px-3 py-2 rounded-lg flex items-center space-x-2 text-collegenie-gray-dark hover:bg-collegenie-gray-light"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <div className="pt-2 pb-3 space-y-2">
+              <ButtonCustom 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/sign-in')}
+              >
+                Sign In
+              </ButtonCustom>
+              <ButtonCustom 
+                variant="blue" 
+                className="w-full"
+                onClick={() => navigate('/sign-up')}
+              >
+                Sign Up
+              </ButtonCustom>
+            </div>
+          )}
         </div>
       </div>
     </header>

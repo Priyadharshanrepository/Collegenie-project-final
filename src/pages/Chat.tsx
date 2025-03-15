@@ -3,45 +3,106 @@ import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import ChatInterface from '@/components/chatbot/ChatInterface';
 import GlassCard from '@/components/ui/glass-card';
-import { Bot, Book, Search, Sparkles, BarChart3, Zap } from 'lucide-react';
+import { Bot, Book, Search, Sparkles, BarChart3, Zap, Code, Server, Database, Network } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Chat = () => {
+  const { user } = useAuth();
+  
   const chatFeatures = [
     {
-      title: 'Course Assistance',
-      description: 'Get answers to your questions about any subject or course concept.',
+      title: 'College Course Help',
+      description: 'Get answers to questions about your higher education courses.',
       icon: Book,
       color: 'bg-blue-100',
       iconColor: 'text-blue-600',
     },
     {
-      title: 'Study Planning',
-      description: 'AI recommendations for optimizing your study schedule and techniques.',
-      icon: BarChart3,
+      title: 'Programming Assistance',
+      description: 'Help with coding assignments in languages like Python, Java, and more.',
+      icon: Code,
       color: 'bg-purple-100',
       iconColor: 'text-purple-600',
     },
     {
-      title: 'Quick Research',
-      description: 'Find references, explanations, and summaries for any topic.',
+      title: 'Research Guidance',
+      description: 'Find academic resources and research paper assistance.',
       icon: Search,
       color: 'bg-green-100',
       iconColor: 'text-green-600',
     },
     {
-      title: 'AI Explanations',
-      description: 'Complex topics broken down into simpler, easier-to-understand explanations.',
+      title: 'Complex Concept Explanations',
+      description: 'Get simplified explanations of difficult college-level concepts.',
       icon: Sparkles,
       color: 'bg-amber-100',
       iconColor: 'text-amber-600',
     },
     {
-      title: 'Instant Feedback',
-      description: 'Submit your answers and get immediate feedback to improve.',
-      icon: Zap,
+      title: 'Assignment Planning',
+      description: 'Create structured plans for tackling your college assignments.',
+      icon: BarChart3,
       color: 'bg-pink-100',
       iconColor: 'text-pink-600',
     },
+  ];
+  
+  const suggestedTopics = [
+    {
+      title: 'Allied Mathematics',
+      examples: [
+        'Explain the concept of eigenvalues in linear algebra',
+        'Help me understand Laplace transforms',
+        'What are the applications of differential equations?'
+      ],
+      icon: BarChart3,
+      color: 'bg-collegenie-blue-light',
+      iconColor: 'text-collegenie-blue-dark'
+    },
+    {
+      title: 'Machine Learning',
+      examples: [
+        'How do neural networks work?',
+        'Explain overfitting and how to prevent it',
+        'What is the difference between supervised and unsupervised learning?'
+      ],
+      icon: Sparkles,
+      color: 'bg-collegenie-gold-light',
+      iconColor: 'text-collegenie-gold-dark'
+    },
+    {
+      title: 'Cloud Computing',
+      examples: [
+        'Explain the concept of containerization',
+        'What are the benefits of microservices?',
+        'How does auto-scaling work in AWS?'
+      ],
+      icon: Server,
+      color: 'bg-purple-100',
+      iconColor: 'text-purple-600'
+    },
+    {
+      title: 'Database Systems',
+      examples: [
+        'What is database normalization?',
+        'Explain the difference between SQL and NoSQL',
+        'How do indexes improve database performance?'
+      ],
+      icon: Database,
+      color: 'bg-green-100',
+      iconColor: 'text-green-600'
+    },
+    {
+      title: 'Computer Networks',
+      examples: [
+        'Explain the OSI model layers',
+        'How does TCP/IP work?',
+        'What is subnetting in networking?'
+      ],
+      icon: Network,
+      color: 'bg-pink-100',
+      iconColor: 'text-pink-600'
+    }
   ];
   
   return (
@@ -54,18 +115,19 @@ const Chat = () => {
           <div className="lg:col-span-1 space-y-6">
             <GlassCard className="p-4 md:p-6" animate={true}>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-collegenie-blue flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-collegenie-gold flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">AI Study Assistant</h2>
-                  <p className="text-xs text-collegenie-gray-dark">Powered by advanced AI</p>
+                  <h2 className="text-lg font-semibold">College AI Assistant</h2>
+                  <p className="text-xs text-collegenie-gray-dark">Specialized for higher education</p>
                 </div>
               </div>
               
               <p className="text-sm text-collegenie-gray-dark mb-4">
-                Your personal AI assistant is here to help with any academic questions. 
-                Ask about course concepts, get help with assignments, or plan your study schedule.
+                Hello {user?.name || 'there'}! I'm your AI assistant for college-level courses. 
+                I can help with course concepts, assignments, and research in subjects like Allied Mathematics, 
+                Machine Learning, Cloud Computing, and more.
               </p>
               
               <div className="space-y-3">
@@ -84,17 +146,32 @@ const Chat = () => {
             </GlassCard>
             
             <GlassCard className="p-4 md:p-6" animate={true} delay={2}>
-              <h3 className="text-sm font-medium mb-3">Try asking about:</h3>
-              <div className="space-y-2">
-                <div className="p-2 rounded-lg bg-collegenie-blue-light text-collegenie-blue-dark text-sm">
-                  "Explain the concept of derivatives in calculus"
-                </div>
-                <div className="p-2 rounded-lg bg-collegenie-gold-light text-collegenie-gold-dark text-sm">
-                  "Help me create a study plan for my biology exam"
-                </div>
-                <div className="p-2 rounded-lg bg-collegenie-gray-light text-collegenie-gray-dark text-sm">
-                  "What are the key themes in Shakespeare's Hamlet?"
-                </div>
+              <h3 className="text-sm font-medium mb-3">Popular Topics</h3>
+              <div className="space-y-4">
+                {suggestedTopics.map((topic, topicIndex) => (
+                  <div key={topicIndex} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full ${topic.color} flex items-center justify-center`}>
+                        <topic.icon className={`w-3 h-3 ${topic.iconColor}`} />
+                      </div>
+                      <h4 className="text-sm font-medium">{topic.title}</h4>
+                    </div>
+                    <div className="space-y-1 pl-8">
+                      {topic.examples.map((example, exampleIndex) => (
+                        <div 
+                          key={exampleIndex} 
+                          className="p-2 rounded-lg bg-white text-collegenie-gray-dark text-xs cursor-pointer hover:bg-collegenie-gray-light transition-colors"
+                          onClick={() => {
+                            // Would integrate with chat interface in a real implementation
+                            console.log('Selected example:', example);
+                          }}
+                        >
+                          "{example}"
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </GlassCard>
           </div>

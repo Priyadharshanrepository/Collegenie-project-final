@@ -1,36 +1,92 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Book, Bot, User } from 'lucide-react';
+import { Send, Book, Bot, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlassCard from '../ui/glass-card';
 import ButtonCustom from '../ui/button-custom';
-
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-}
+import { ChatMessage } from '@/types/task';
+import { useToast } from '@/components/ui/use-toast';
 
 // Sample initial messages
-const initialMessages: Message[] = [
+const initialMessages: ChatMessage[] = [
   {
     id: '1',
-    content: "Hello! I'm your academic assistant. How can I help you today?",
+    content: "Hello! I'm your academic assistant specialized in college subjects. How can I help you with your studies today?",
     sender: 'bot',
     timestamp: new Date(Date.now() - 60000),
   },
 ];
+
+// College-specific responses
+const collegeResponses = {
+  'allied mathematics': [
+    "In Allied Mathematics, linear algebra concepts are crucial for understanding vector spaces. The key properties to focus on are linearity, span, basis, and dimension.",
+    "For your Allied Mathematics assignment, remember that differential equations model real-world phenomena like population growth or electrical circuits. The order of a differential equation is determined by the highest derivative present.",
+    "When tackling probability problems in Allied Mathematics, make sure to apply Bayes' theorem correctly. It's often useful for updating probabilities when new information becomes available."
+  ],
+  'machine learning': [
+    "For your Machine Learning assignment, ensure you're properly splitting your dataset into training, validation, and test sets. A common split is 70-15-15 or 80-10-10.",
+    "When implementing gradient descent in your Machine Learning project, remember to normalize your features to ensure the algorithm converges quickly and doesn't oscillate.",
+    "For your classification task, consider using ensemble methods like Random Forest or XGBoost which often outperform single models and provide better generalization."
+  ],
+  'cloud computing': [
+    "In your Cloud Computing assignment, make sure to address the key security considerations when designing a multi-tenant architecture, including data isolation and access controls.",
+    "When designing your AWS architecture for the Cloud Computing project, consider using Auto Scaling Groups to ensure your application can handle varying loads efficiently.",
+    "For your Docker containerization assignment, remember that images should be kept as small as possible by using multi-stage builds and minimizing the number of layers."
+  ],
+  'data science': [
+    "When preprocessing data for your Data Science assignment, pay close attention to handling missing values appropriately - consider whether imputation or removal is more appropriate.",
+    "For your exploratory data analysis, remember to use both visual techniques (like histograms and scatter plots) and statistical methods to identify patterns and relationships."
+  ],
+  'software engineering': [
+    "In your Software Engineering project, make sure to follow SOLID principles, especially the Single Responsibility Principle which states that a class should have only one reason to change.",
+    "When designing your system architecture, consider using microservices if your application needs to scale different components independently."
+  ],
+  'artificial intelligence': [
+    "For your AI assignment on heuristic search, remember that A* algorithm is optimal when the heuristic is admissible (never overestimates the cost).",
+    "When implementing a neural network, consider the vanishing gradient problem if using sigmoid activations in deep networks. ReLU activations can help mitigate this issue."
+  ],
+  'database systems': [
+    "In your Database Systems assignment, ensure you've normalized your database schema to at least 3NF to reduce data redundancy and improve integrity.",
+    "When designing queries for your database project, remember that proper indexing can significantly improve performance for frequently queried columns."
+  ],
+  'computer networks': [
+    "For your Computer Networks assignment, understand the differences between connection-oriented (TCP) and connectionless (UDP) protocols and when to use each.",
+    "When designing a network topology, consider factors like scalability, redundancy, and fault tolerance in your architecture."
+  ]
+};
+
+// Function to get a relevant response based on message content
+const getSmartResponse = (message: string): string => {
+  message = message.toLowerCase();
+  
+  // Check for specific subjects
+  for (const [subject, responses] of Object.entries(collegeResponses)) {
+    if (message.includes(subject)) {
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+  }
+  
+  // Check for assignment-related keywords
+  if (message.includes('assignment') || message.includes('homework') || message.includes('project')) {
+    const allResponses = Object.values(collegeResponses).flat();
+    return allResponses[Math.floor(Math.random() * allResponses.length)];
+  }
+  
+  // Default response
+  return "I understand you're asking about an academic topic. Could you specify which subject area you're interested in? I'm specialized in Allied Mathematics, Machine Learning, Cloud Computing, Data Science, Software Engineering, Artificial Intelligence, Database Systems, and Computer Networks.";
+};
 
 interface ChatInterfaceProps {
   className?: string;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -42,7 +98,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     if (!input.trim()) return;
     
     // Add user message
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: input,
       sender: 'user',
@@ -53,28 +109,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     setInput('');
     setIsTyping(true);
     
-    // Simulate bot response after a delay
+    // Simulate typing indication for a more realistic experience
+    const typingTime = Math.min(2000, 500 + input.length * 10);
+    
+    // Generate a "smart" response based on the user's message
     setTimeout(() => {
-      const botResponses = [
-        "I understand your question about the physics concept. The relationship between force and acceleration is described by Newton's Second Law: F = ma, where F is force, m is mass, and a is acceleration.",
-        "Great question about calculus! The derivative of a function represents its rate of change. For example, if y = f(x) represents the position of an object, then f'(x) represents its velocity.",
-        "For your literature assignment, you might want to analyze the author's use of symbolism and how it contributes to the overall themes in the work.",
-        "When preparing for your presentation, remember to structure it with a clear introduction, main points, and conclusion. Visual aids can help reinforce your key messages.",
-        "Based on your study schedule, I recommend allocating more time to the topics you find challenging. Spaced repetition can also help improve retention of the material."
-      ];
+      const smartResponse = getSmartResponse(input);
       
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
-      
-      const botMessage: Message = {
+      const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: randomResponse,
+        content: smartResponse,
         sender: 'bot',
         timestamp: new Date(),
       };
       
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
-    }, 1500);
+      
+      // Show toast for important keywords
+      if (input.toLowerCase().includes('deadline') || input.toLowerCase().includes('due')) {
+        toast({
+          title: "Reminder",
+          description: "I've noticed you're discussing deadlines. Would you like me to help you create a task for this?",
+          action: <ButtonCustom size="sm" variant="blue" onClick={() => console.log('Create task')}>Create Task</ButtonCustom>
+        });
+      }
+    }, typingTime);
   };
   
   // Handle enter key press
@@ -89,12 +149,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     <GlassCard className={cn("flex flex-col h-full", className)} animate={true}>
       <div className="p-4 border-b border-collegenie-gray-light">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-collegenie-blue-light flex items-center justify-center">
-            <Bot className="w-4 h-4 text-collegenie-blue-dark" />
+          <div className="w-8 h-8 rounded-full bg-collegenie-gold-light flex items-center justify-center">
+            <Bot className="w-4 h-4 text-collegenie-gold-dark" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">AI Study Assistant</h3>
-            <p className="text-xs text-collegenie-gray-dark">Ask me anything about your courses</p>
+            <h3 className="text-lg font-semibold">College AI Assistant</h3>
+            <p className="text-xs text-collegenie-gray-dark">Specialized in higher education subjects</p>
           </div>
         </div>
       </div>
@@ -118,7 +178,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             >
               <div className="flex items-center gap-2 mb-1">
                 {message.sender === 'bot' ? (
-                  <Bot className="h-4 w-4 text-collegenie-blue-dark" />
+                  <Bot className="h-4 w-4 text-collegenie-gold-dark" />
                 ) : (
                   <User className="h-4 w-4 text-white" />
                 )}
@@ -126,7 +186,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
                   "text-xs font-medium",
                   message.sender === 'user' ? "text-white/80" : "text-collegenie-gray-dark"
                 )}>
-                  {message.sender === 'user' ? 'You' : 'AI Assistant'}
+                  {message.sender === 'user' ? 'You' : 'College Assistant'}
                 </span>
               </div>
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -143,10 +203,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-collegenie-gray-light text-foreground rounded-2xl rounded-tl-none p-3 max-w-[80%]">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-collegenie-gray-dark rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                <div className="w-2 h-2 bg-collegenie-gray-dark rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                <div className="w-2 h-2 bg-collegenie-gray-dark rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 text-collegenie-gold-dark animate-spin" />
+                <span className="text-xs text-collegenie-gray-dark">College Assistant is typing...</span>
               </div>
             </div>
           </div>
@@ -161,7 +220,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Ask about your coursework..."
+            placeholder="Ask about your college courses, assignments, or concepts..."
             className="flex-grow p-2 border border-collegenie-gray rounded-lg focus:outline-none focus:ring-2 focus:ring-collegenie-blue focus:border-transparent resize-none"
             rows={1}
           />
@@ -176,7 +235,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         </div>
         <div className="mt-2 text-xs text-collegenie-gray-dark flex items-center justify-center">
           <Book className="h-3 w-3 mr-1" />
-          <span>Type your academic questions and get AI-powered answers</span>
+          <span>Specialized in Allied Mathematics, Machine Learning, Cloud Computing, and more</span>
         </div>
       </div>
     </GlassCard>

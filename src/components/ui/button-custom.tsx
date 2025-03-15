@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button as ShadcnButton } from '@/components/ui/button';
+import { ButtonProps } from '@/components/ui/button';
 
 interface ButtonCustomProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
@@ -21,7 +22,8 @@ export const ButtonCustom = ({
   animate = false,
   ...props
 }: ButtonCustomProps) => {
-  const variantMappings = {
+  // Map custom variants to shadcn button variants
+  const variantMap: Record<string, ButtonProps['variant']> = {
     'default': 'default',
     'blue': 'default',
     'gold': 'outline',
@@ -45,7 +47,7 @@ export const ButtonCustom = ({
         animationClass,
         className
       )}
-      variant={variantMappings[variant as keyof typeof variantMappings]}
+      variant={variantMap[variant] as ButtonProps['variant']}
       size={size}
       disabled={isLoading || props.disabled}
       {...props}
