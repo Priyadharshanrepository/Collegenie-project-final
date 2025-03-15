@@ -7,9 +7,8 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/layout/Navbar';
 import GlassCard from '@/components/ui/glass-card';
 import ButtonCustom from '@/components/ui/button-custom';
-import { Task } from '@/types/task';
+import { Task, GroupedTasks } from '@/types/task';
 
-// Sample data for tasks
 const sampleTasks: Task[] = [
   { 
     id: 1, 

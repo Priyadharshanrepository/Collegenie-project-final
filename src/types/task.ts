@@ -10,6 +10,13 @@ export interface Task {
   course?: string;
 }
 
+export interface GroupedTasks {
+  [date: string]: {
+    status: string;
+    tasks: Task[];
+  };
+}
+
 export interface ChatMessage {
   id: string;
   content: string;
