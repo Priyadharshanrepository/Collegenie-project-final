@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { CheckCircle, Circle, Clock, ListTodo, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlassCard from '../ui/glass-card';
 import ButtonCustom from '../ui/button-custom';
+import { Task } from '@/types/task';
 
 // Sample data for tasks
-const sampleTasks = [
+const sampleTasks: Task[] = [
   { 
     id: 1, 
     title: 'Finish Physics Assignment', 
@@ -41,15 +41,6 @@ const sampleTasks = [
   },
 ];
 
-interface Task {
-  id: number;
-  title: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority: 'high' | 'medium' | 'low';
-  category: string;
-}
-
 interface TaskListProps {
   className?: string;
 }
@@ -65,13 +56,11 @@ const TaskList: React.FC<TaskListProps> = ({ className }) => {
     );
   };
   
-  // Format date to "Jun 10" format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
   
-  // Check if due date is today, overdue, or upcoming
   const getDueDateStatus = (dateString: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -84,7 +73,7 @@ const TaskList: React.FC<TaskListProps> = ({ className }) => {
     return 'upcoming';
   };
   
-  const getPriorityStyles = (priority: string) => {
+  const getPriorityStyles = (priority: 'high' | 'medium' | 'low') => {
     switch(priority) {
       case 'high':
         return 'bg-red-50 text-red-600 border-red-200';

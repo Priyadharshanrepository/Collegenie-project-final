@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   ListTodo, Plus, Filter, Search, Calendar, Tag, ChevronDown, 
@@ -8,9 +7,10 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/layout/Navbar';
 import GlassCard from '@/components/ui/glass-card';
 import ButtonCustom from '@/components/ui/button-custom';
+import { Task } from '@/types/task';
 
 // Sample data for tasks
-const sampleTasks = [
+const sampleTasks: Task[] = [
   { 
     id: 1, 
     title: 'Finish Physics Assignment', 
@@ -73,17 +73,6 @@ const sampleTasks = [
   },
 ];
 
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority: 'high' | 'medium' | 'low';
-  category: string;
-  course: string;
-}
-
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>(sampleTasks);
   const [filter, setFilter] = useState('all'); // all, active, completed
@@ -98,13 +87,11 @@ const Tasks = () => {
     );
   };
   
-  // Format date to "Jun 10" format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
   
-  // Check if due date is today, overdue, or upcoming
   const getDueDateStatus = (dateString: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -117,7 +104,7 @@ const Tasks = () => {
     return 'upcoming';
   };
   
-  const getPriorityStyles = (priority: string) => {
+  const getPriorityStyles = (priority: 'high' | 'medium' | 'low') => {
     switch(priority) {
       case 'high':
         return 'bg-red-50 text-red-600 border-red-200';
@@ -141,7 +128,6 @@ const Tasks = () => {
     }
   };
   
-  // Filter tasks based on filter and search term
   const filteredTasks = tasks.filter(task => {
     const matchesFilter = 
       filter === 'all' || 
@@ -156,14 +142,6 @@ const Tasks = () => {
     
     return matchesFilter && matchesSearch;
   });
-  
-  // Group tasks by day
-  type GroupedTasks = {
-    [key: string]: {
-      status: string;
-      tasks: Task[];
-    }
-  };
   
   const groupedTasks = filteredTasks.reduce((groups: GroupedTasks, task) => {
     const dueDate = task.dueDate;
@@ -180,17 +158,14 @@ const Tasks = () => {
     return groups;
   }, {});
   
-  // Sort dates
   const sortedDates = Object.keys(groupedTasks).sort((a, b) => {
     return new Date(a).getTime() - new Date(b).getTime();
   });
   
-  // Toggle task expansion
   const toggleTaskExpansion = (taskId: number) => {
     setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
   };
 
-  // Calculate task stats
   const taskStats = {
     total: tasks.length,
     completed: tasks.filter(task => task.isCompleted).length,
@@ -203,7 +178,6 @@ const Tasks = () => {
       <Navbar />
       
       <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8 fade-animation">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -219,7 +193,6 @@ const Tasks = () => {
           </div>
         </div>
         
-        {/* Task Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <GlassCard className="p-4" animate={true} delay={1}>
             <div className="flex items-center gap-2">
@@ -270,7 +243,6 @@ const Tasks = () => {
           </GlassCard>
         </div>
         
-        {/* Filters and Search */}
         <GlassCard className="p-4 md:p-6 mb-6" animate={true} delay={1}>
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1 relative">
@@ -316,7 +288,6 @@ const Tasks = () => {
           </div>
         </GlassCard>
         
-        {/* Task List */}
         <div className="space-y-6 fade-animation">
           {sortedDates.length === 0 && (
             <GlassCard className="p-8 text-center">
@@ -376,7 +347,6 @@ const Tasks = () => {
                             isExpanded ? "shadow-subtle" : ""
                           )}
                         >
-                          {/* Task Header */}
                           <div 
                             className="p-4 flex items-center gap-3 cursor-pointer"
                             onClick={() => toggleTaskExpansion(task.id)}
@@ -434,7 +404,6 @@ const Tasks = () => {
                             </div>
                           </div>
                           
-                          {/* Task Details */}
                           {isExpanded && (
                             <div className="p-4 pt-0 pl-12 pb-4 border-t border-collegenie-gray-light">
                               <div className="bg-collegenie-gray-lightest rounded-lg p-3 mb-3">
