@@ -1,19 +1,31 @@
 
 import { GrokResponse } from '@/types/task';
 
-// This function would typically fetch from a backend that securely manages the API key
+const GROK_API_KEY = 'xai-ZJKyiEIFus1MGPxvRzU8mA729UZaBEt2rZNJJrO7Rrh9ASy0XRCTc2Xhg1fG7uFWoXI3YKlseRYgBuzj';
+
 export const fetchGrokResponse = async (message: string): Promise<string> => {
   try {
-    // In a production app, this request would go to your backend which securely stores the API key
-    const response = await fetch('/api/chat', {
+    // Make a direct request to the Grok API with our key
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${GROK_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
-        message,
-        // Academic context to focus on college subjects
-        context: "You are CollegeGenie, an AI assistant focused on helping with college subjects like Allied Mathematics, Machine Learning, Cloud Computing, Web Development, Database Systems, and Software Engineering. Provide concise, helpful responses to students' questions."
+        model: "llama3-70b-8192",
+        messages: [
+          {
+            role: "system",
+            content: "You are CollegeGenie, an AI assistant focused on helping with college subjects like Allied Mathematics, Machine Learning, Cloud Computing, Web Development, Database Systems, and Software Engineering. Provide concise, helpful responses to students' questions."
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
       }),
     });
     
@@ -21,12 +33,12 @@ export const fetchGrokResponse = async (message: string): Promise<string> => {
       throw new Error(`Error: ${response.status}`);
     }
     
-    const data: GrokResponse = await response.json();
+    const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Error fetching from Grok API:', error);
     
-    // Fallback responses for testing without the actual API
+    // Fallback responses for when the API fails
     const fallbackResponses = [
       "I can help with your Allied Mathematics assignment. What specific topic are you studying?",
       "For your Machine Learning project, consider using scikit-learn or TensorFlow to implement your models.",
@@ -36,7 +48,7 @@ export const fetchGrokResponse = async (message: string): Promise<string> => {
       "Software Engineering principles like SOLID can really improve your code architecture."
     ];
     
-    // Return a random fallback response for testing purposes
+    // Return a random fallback response for when the API fails
     return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
   }
 };

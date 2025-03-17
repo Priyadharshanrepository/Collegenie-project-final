@@ -65,7 +65,7 @@ const EnhancedChatInterface = () => {
     setIsProcessing(true);
 
     try {
-      // First, check for special commands
+      // Check for special commands first
       const userInput = input.toLowerCase();
       let botResponse = '';
       
@@ -74,8 +74,9 @@ const EnhancedChatInterface = () => {
       } else if (userInput.startsWith('/subjects')) {
         botResponse = `I can help with the following subjects:\n${COLLEGE_SUBJECTS.join('\n')}`;
       } else {
-        // For regular messages, use the Grok API
+        // For regular messages, use the Grok API via our service
         botResponse = await fetchGrokResponse(input);
+        console.log('Response from Grok API:', botResponse);
       }
 
       const botMessage: ChatMessage = {
