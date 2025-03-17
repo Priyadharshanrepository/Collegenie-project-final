@@ -129,7 +129,7 @@ export default {
 				'pulse-light': 'pulse-light 2s ease-in-out infinite'
 			},
 			fontFamily: {
-				sans: ['Inter', 'SF Pro Display', 'sans-serif'],
+				sans: ['Poppins', 'system-ui', 'sans-serif'],
 			},
 			boxShadow: {
 				'subtle': '0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 8px rgba(0, 0, 0, 0.02)',
