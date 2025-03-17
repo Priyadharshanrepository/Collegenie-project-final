@@ -5,7 +5,7 @@ const GROK_API_KEY = 'xai-ZJKyiEIFus1MGPxvRzU8mA729UZaBEt2rZNJJrO7Rrh9ASy0XRCTc2
 
 export const fetchGrokResponse = async (message: string): Promise<string> => {
   try {
-    // Make a direct request to the Grok API with our key
+    // Make a direct request to the Groq API with our key
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -17,7 +17,7 @@ export const fetchGrokResponse = async (message: string): Promise<string> => {
         messages: [
           {
             role: "system",
-            content: "You are CollegeGenie, an AI assistant focused on helping with college subjects like Allied Mathematics, Machine Learning, Cloud Computing, Web Development, Database Systems, and Software Engineering. Provide concise, helpful responses to students' questions."
+            content: "You are CollegeGenie, an expert AI assistant specialized in college subjects including Allied Mathematics, Machine Learning, Cloud Computing, Web Development, Database Systems, and Software Engineering. Provide detailed, accurate, and helpful responses to students' questions. Include examples, explanations, and code snippets when relevant. Be conversational but focused on providing high-quality academic assistance. If you don't know something, admit it rather than making up an answer."
           },
           {
             role: "user",
@@ -25,7 +25,7 @@ export const fetchGrokResponse = async (message: string): Promise<string> => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1024
+        max_tokens: 2048
       }),
     });
     
@@ -36,7 +36,7 @@ export const fetchGrokResponse = async (message: string): Promise<string> => {
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error fetching from Grok API:', error);
+    console.error('Error fetching from Groq API:', error);
     
     // Fallback responses for when the API fails
     const fallbackResponses = [
