@@ -12,6 +12,7 @@ import Chat from "./pages/Chat";
 import EnhancedChat from "./pages/EnhancedChat";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -48,6 +49,11 @@ const App = () => (
             <Route path="/enhanced-chat" element={
               <ProtectedRoute>
                 <EnhancedChat />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
             
