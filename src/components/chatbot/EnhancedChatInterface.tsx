@@ -10,7 +10,8 @@ import { ChatMessage } from '@/types/task';
 import { fetchGrokResponse } from '@/services/grokService';
 import TypeResponseCube from '@/components/animations/TypeResponseCube';
 import { useAuth } from '@/hooks/useAuth';
-import { Sparkles, Book, Send, Loader } from 'lucide-react';
+import { Sparkles, Book, Send, Loader, Info, Save } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const COLLEGE_SUBJECTS = [
   'Allied Mathematics',
@@ -36,9 +37,14 @@ const EnhancedChatInterface = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [conversationId, setConversationId] = useState<string>(uuidv4());
+  const [typingSpeed, setTypingSpeed] = useState<number>(0);
+  const [averageResponseTime, setAverageResponseTime] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastKeyPressTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -47,15 +53,108 @@ const EnhancedChatInterface = () => {
   useEffect(() => {
     // Focus the input when the component mounts
     inputRef.current?.focus();
-  }, []);
+    
+    // Create a new conversation entry in Supabase
+    if (user) {
+      createConversation();
+    }
+
+    return () => {
+      // Clear typing timer if it exists
+      if (typingTimerRef.current) {
+        clearInterval(typingTimerRef.current);
+      }
+    };
+  }, [user]);
+
+  const createConversation = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({
+          id: conversationId,
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error creating conversation:', error);
+      } else {
+        console.log('Conversation created successfully:', data);
+      }
+    } catch (error) {
+      console.error('Exception creating conversation:', error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const trackTypingSpeed = () => {
+    const currentTime = Date.now();
+    
+    if (lastKeyPressTimeRef.current) {
+      const timeDiff = currentTime - lastKeyPressTimeRef.current;
+      // Only update if time difference is reasonable (< 5 seconds)
+      if (timeDiff < 5000) {
+        // Convert to characters per minute
+        const cpm = Math.round(60000 / timeDiff);
+        // Rolling average with more weight to recent typing
+        setTypingSpeed(prev => prev ? Math.round(0.3 * prev + 0.7 * cpm) : cpm);
+      }
+    }
+    
+    lastKeyPressTimeRef.current = currentTime;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
     setIsTyping(e.target.value.length > 0);
+    trackTypingSpeed();
+  };
+
+  const saveMessageToSupabase = async (message: ChatMessage) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          conversation_id: conversationId,
+          content: message.content,
+          role: message.sender === 'user' ? 'user' : 'assistant',
+          timestamp: message.timestamp.toISOString()
+        });
+      
+      if (error) {
+        console.error('Error saving message:', error);
+      }
+    } catch (error) {
+      console.error('Exception saving message:', error);
+    }
+  };
+
+  const updateConversationTimestamp = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
+      
+      if (error) {
+        console.error('Error updating conversation timestamp:', error);
+      }
+    } catch (error) {
+      console.error('Exception updating conversation timestamp:', error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,9 +169,11 @@ const EnhancedChatInterface = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    saveMessageToSupabase(userMessage);
     setInput('');
     setIsTyping(false);
     setIsProcessing(true);
+    updateConversationTimestamp();
 
     // Display a temporary "thinking" message
     const thinkingId = uuidv4();
@@ -83,13 +184,15 @@ const EnhancedChatInterface = () => {
       timestamp: new Date()
     }]);
 
+    const startTime = Date.now();
+
     try {
       // Check for special commands first
       const userInput = input.toLowerCase();
       let botResponse = '';
       
       if (userInput.startsWith('/help')) {
-        botResponse = "Available commands:\n/help - Show this help message\n/subjects - List college subjects I can help with\n/clear - Clear chat history";
+        botResponse = "Available commands:\n/help - Show this help message\n/subjects - List college subjects I can help with\n/clear - Clear chat history\n/stats - Show conversation statistics";
       } else if (userInput.startsWith('/subjects')) {
         botResponse = `I can help with the following subjects:\n${COLLEGE_SUBJECTS.join('\n')}`;
       } else if (userInput.startsWith('/clear')) {
@@ -101,31 +204,46 @@ const EnhancedChatInterface = () => {
         }]);
         setIsProcessing(false);
         return;
+      } else if (userInput.startsWith('/stats')) {
+        botResponse = `Conversation Statistics:\nMessages: ${messages.length}\nAverage Response Time: ${averageResponseTime ? `${averageResponseTime.toFixed(2)}ms` : 'N/A'}\nYour Typing Speed: ${typingSpeed ? `${typingSpeed} CPM` : 'N/A'}`;
       } else {
         // For regular messages, use the Groq API via our service
-        botResponse = await fetchGrokResponse(input);
-        console.log('Response from Groq API:', botResponse);
+        botResponse = await fetchGrokResponse(input, user?.id);
       }
 
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      // Update average response time
+      setAverageResponseTime(prev => 
+        prev ? (prev + responseTime) / 2 : responseTime
+      );
+
       // Remove the temporary thinking message and add the real response
-      setMessages(prev => prev.filter(msg => msg.id !== thinkingId).concat({
+      const botMessageObj: ChatMessage = {
         id: uuidv4(),
         content: botResponse,
         sender: 'bot',
         timestamp: new Date()
-      }));
+      };
+      
+      setMessages(prev => prev.filter(msg => msg.id !== thinkingId).concat(botMessageObj));
+      saveMessageToSupabase(botMessageObj);
 
       // Focus the input for next message
       inputRef.current?.focus();
     } catch (error) {
       console.error('Failed to get response:', error);
       // Remove the thinking message and add an error message
-      setMessages(prev => prev.filter(msg => msg.id !== thinkingId).concat({
+      const errorMessageObj: ChatMessage = {
         id: uuidv4(),
         content: "Sorry, I had trouble generating a response. Please try again.",
         sender: 'bot',
         timestamp: new Date()
-      }));
+      };
+      
+      setMessages(prev => prev.filter(msg => msg.id !== thinkingId).concat(errorMessageObj));
+      saveMessageToSupabase(errorMessageObj);
       
       toast({
         title: "Error",
@@ -134,7 +252,38 @@ const EnhancedChatInterface = () => {
       });
     } finally {
       setIsProcessing(false);
+      updateConversationTimestamp();
     }
+  };
+
+  const exportChat = () => {
+    if (messages.length <= 1) {
+      toast({
+        title: "Nothing to export",
+        description: "Have a conversation first before exporting.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const chatContent = messages.map(msg => 
+      `[${msg.timestamp.toLocaleString()}] ${msg.sender === 'user' ? 'You' : 'CollegeGenie'}: ${msg.content}`
+    ).join('\n\n');
+    
+    const blob = new Blob([chatContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `collegegenie-chat-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Chat Exported",
+      description: "Your conversation has been saved as a text file.",
+    });
   };
 
   return (
@@ -148,6 +297,28 @@ const EnhancedChatInterface = () => {
           <p className="text-sm opacity-80">
             Powered by Groq LLama-3 70B
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="text-primary" 
+            onClick={exportChat}
+          >
+            <Save className="h-4 w-4 mr-1" /> Export
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:text-white hover:bg-primary-dark"
+            onClick={() => toast({
+              title: "Real-time Tracking",
+              description: "Your conversation is being tracked for improved responses. Typing speed: " + 
+                (typingSpeed ? `${typingSpeed} CPM` : 'Calculating...'),
+            })}
+          >
+            <Info className="h-4 w-4" />
+          </Button>
         </div>
       </div>
       
@@ -198,7 +369,7 @@ const EnhancedChatInterface = () => {
       
       <div className="px-4 pb-3 pt-0 text-xs text-muted-foreground flex justify-center items-center">
         <Book className="h-3 w-3 mr-1" />
-        <span>Use /help to see available commands</span>
+        <span>Use /help to see available commands • {typingSpeed ? `Typing: ${typingSpeed} CPM` : 'Start typing...'}</span>
       </div>
       
       {/* Three.js animation that responds to typing */}
