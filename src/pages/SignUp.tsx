@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import GlassCard from '@/components/ui/glass-card';
+import { useAuth } from '@/hooks/useAuth';
 
 const SignUp = () => {
   const [name, setName] = useState('');
@@ -13,7 +13,7 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -38,25 +38,22 @@ const SignUp = () => {
       return;
     }
     
-    setIsLoading(true);
-    
-    // Simulate registration
-    setTimeout(() => {
-      // Mock successful registration
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        name: name,
-        email: email,
-      }));
+    try {
+      await signup(name, email, password);
       
       toast({
         title: "Success",
         description: "Account created successfully!",
       });
       
-      setIsLoading(false);
       navigate('/dashboard');
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

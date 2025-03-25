@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import GlassCard from '@/components/ui/glass-card';
 import ProgressChart from '@/components/dashboard/ProgressChart';
 import TaskList from '@/components/dashboard/TaskList';
+import ExamProgressTracker from '@/components/exams/ExamProgressTracker';
 import ButtonCustom from '@/components/ui/button-custom';
 
 const Dashboard = () => {
@@ -141,10 +142,13 @@ const Dashboard = () => {
         </div>
         
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <ProgressChart className="lg:col-span-2" />
           <TaskList />
         </div>
+        
+        {/* Exam Progress Tracker */}
+        <ExamProgressTracker />
       </main>
     </div>
   );

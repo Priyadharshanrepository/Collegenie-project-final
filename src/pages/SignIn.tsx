@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
@@ -6,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import GlassCard from '@/components/ui/glass-card';
+import { useAuth } from '@/hooks/useAuth';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,25 +27,22 @@ const SignIn = () => {
       return;
     }
     
-    setIsLoading(true);
-    
-    // Simulate authentication
-    setTimeout(() => {
-      // Mock successful login
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        name: 'Demo User',
-        email: email,
-      }));
+    try {
+      await login(email, password);
       
       toast({
         title: "Success",
         description: "You have successfully signed in!",
       });
       
-      setIsLoading(false);
       navigate('/dashboard');
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign in. Please check your credentials.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
