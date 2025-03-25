@@ -71,7 +71,7 @@ const EnhancedChatInterface = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('conversations')
         .insert({
           id: conversationId,
@@ -79,13 +79,12 @@ const EnhancedChatInterface = () => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           is_active: true
-        })
-        .select();
+        });
       
       if (error) {
         console.error('Error creating conversation:', error);
       } else {
-        console.log('Conversation created successfully:', data);
+        console.log('Conversation created successfully');
       }
     } catch (error) {
       console.error('Exception creating conversation:', error);

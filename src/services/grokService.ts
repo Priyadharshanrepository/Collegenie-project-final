@@ -49,13 +49,15 @@ export const fetchGrokResponse = async (message: string, userId?: string): Promi
     // Store the interaction in Supabase if user is logged in
     if (userId) {
       try {
-        const { error } = await supabase.from('chat_interactions').insert({
-          user_id: userId,
-          query: message,
-          response: responseContent,
-          response_time_ms: responseTimeMs,
-          timestamp: new Date().toISOString()
-        });
+        const { error } = await supabase
+          .from('chat_interactions')
+          .insert({
+            user_id: userId,
+            query: message,
+            response: responseContent,
+            response_time_ms: responseTimeMs,
+            timestamp: new Date().toISOString()
+          });
         
         if (error) {
           console.error('Error storing chat interaction:', error);
